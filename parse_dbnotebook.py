@@ -208,10 +208,9 @@ def main():
         sys.exit(1)
 
     if args.file.endswith(".py"):
-        print("Parsing Databricks notebook to Jupyter notebook")
-        assert (
-            "# Databricks notebook source" in file_content
-        ), "This script does not appear to be a Databricks notebook."
+        # If this is not a Databricks notebook, return None
+        if not "# Databricks notebook source" in file_content:
+            return None
         if args.output is not None:
             output_file = args.output
         else:
@@ -221,7 +220,6 @@ def main():
         nb = jupytext.reads(parsed_nb, fmt="py:percent")
         jupytext.write(nb, output_file)
     elif args.file.endswith(".ipynb"):
-        print("Parsing Jupyter notebook to Databricks notebook")
         if args.output is not None:
             output_file = args.output
         else:
