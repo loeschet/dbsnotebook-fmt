@@ -193,6 +193,7 @@ def main():
                      "'# COMMAND ----------' delimiters.")
     )
     parser.add_argument("file", help="Path to the Python file to be split")
+    parser.add_argument("--output", "-o", default=None, help="Path to the output file")
 
     args = parser.parse_args()
 
@@ -211,15 +212,23 @@ def main():
         assert (
             "# Databricks notebook source" in file_content
         ), "This script does not appear to be a Databricks notebook."
+        if args.output is not None:
+            output_file = args.output
+        else:
+            output_file = args.file.replace(".py", ".ipynb")
         split_blocks = split_script(file_content)
         parsed_nb = parse_dbnotebook(split_blocks)
         nb = jupytext.reads(parsed_nb, fmt="py:percent")
-        jupytext.write(nb, args.file.replace(".py", ".ipynb"))
+        jupytext.write(nb, output_file)
     elif args.file.endswith(".ipynb"):
         print("Parsing Jupyter notebook to Databricks notebook")
+        if args.output is not None:
+            output_file = args.output
+        else:
+            output_file = args.file.replace(".ipynb", ".py")
         nb = jupytext.read(args.file)
         nb_str = jupytext.writes(nb, fmt="py:percent")
-        with open(args.file.replace(".ipynb", ".py"), "w") as file:
+        with open(output_file, "w") as file:
             file.write(parse_jupyter_notebook(nb_str))
     else:
         raise ValueError("File must be a Python script or Jupyter notebook.")
